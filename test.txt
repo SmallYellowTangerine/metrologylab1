@@ -1,0 +1,20 @@
+var
+	ur: ttt;
+ru, tt: tttt;
+begin
+ur
+ru
+tt
+ru
+end;
+
+
+var
+am, ru: tut;
+begin
+am
+cpp
+cpp;
+ru;
+ru;
+end.

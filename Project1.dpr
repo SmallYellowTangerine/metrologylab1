@@ -2,8 +2,7 @@ program Project1;
 
 uses
   Forms,
-  Unit1 in 'Unit1.pas' {Form1},
-  Unit2 in 'Unit2.pas';
+  Unit1 in 'Unit1.pas' {Form1};
 
 {$R *.res}
 

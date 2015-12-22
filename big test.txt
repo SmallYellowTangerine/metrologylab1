@@ -27,7 +27,7 @@ var
   Form1: TForm1;
   sourcecode, resultcode: string;
   arrayofsmall: array of integer;
-  arrayofvariables: array of array[1..3] of string;
+  arrayofvaariables: array of array[1..3] of string;
 
 implementation
 
@@ -48,19 +48,19 @@ end;
 //функция для нахождения минимального не равного нулю числа из заданных
 function smallestof(arrayofthings: array of integer): integer;
 var
-  i: integer;
+  iter: integer;
 begin
   result:=0;
-  i:=0;
+  iter:=0;
   while result=0 do
     begin
-    result:=arrayofthings[i];
-    inc(i);
+    result:=arrayofthings[iter];
+    inc(iter);
     end;
-  for i:=0 to length(arrayofthings)-1 do
+  for iter:=0 to length(arrayofthings)-1 do
     begin
-    if (arrayofthings[i]<>0) and (arrayofthings[i]<=result)
-      then result:=arrayofthings[i];
+    if (arrayofthings[iter]<>0) and (arrayofthings[iter]<=result)
+      then result:=arrayofthings[iter];
     end;
 end;
 
@@ -86,7 +86,7 @@ end;
 //удаление комментариев
 procedure TForm1.Button3Click(Sender: TObject);
 var
-  i, foundposition, state: integer;
+  iter, foundposition, state: integer;
   tempsource: string;
 begin
   button2.Enabled:=true;
@@ -100,8 +100,8 @@ begin
     arrayofsmall[1]:=pos('{', tempsource);
     arrayofsmall[2]:=pos('''', tempsource);
     foundposition:=smallestof(arrayofsmall);
-    for i:=0 to 2 do
-      if arrayofsmall[i]=foundposition then state:=i;
+    for iter:=0 to 2 do
+      if arrayofsmall[i]=foundposition then state:=iter;
     //копируем исправленный код в конечную строку/удаляем его из исходной
     resultcode:=resultcode+copy(tempsource, 1, foundposition-1);
     tempsource:=copy(tempsource, foundposition+1, length(tempsource));
@@ -126,15 +126,15 @@ end;
 //Подсчет всего
 procedure TForm1.Button2Click(Sender: TObject);
 var
-  i, foundquote, foundposition, vararraycount, nestcode, j, checkposition: integer;
-  variable, nest: string;
+  iter, foundquote, foundposition, vaararraycount, nestcode, j, checkposition: integer;
+  vaariable, nest: string;
   alreadycounted, deletecolon, deletecomma, proc: boolean;
 begin
   //игнорирование кавычек
-  i:=1;
+  iter:=1;
   while pos('''', resultcode)<>0 do
     begin
-    if i mod 2=1 then
+    if iter mod 2=1 then
       begin
       foundquote:=pos('''', resultcode);
       resultcode:=copy(resultcode, 1, pos('''', resultcode)-1)+
@@ -143,13 +143,13 @@ begin
     else
       resultcode:=copy(resultcode, 1, foundquote-1)+
                   copy(resultcode, pos('''', resultcode)+1, length(resultcode));
-    inc(i);
+    inc(iter);
     end;
 
   //подсчет всех операторов
   nest:='';
   nestcode:=32;
-  vararraycount:=0;
+  vaararraycount:=0;
   while resultcode<>'' do
     begin
     //определяем, что встречается в тексте раньше - var/function/procedure, begin или end
@@ -158,10 +158,10 @@ begin
     arrayofsmall[1]:=pos('begin', resultcode);
     arrayofsmall[2]:=pos('end', resultcode);
     arrayofsmall[3]:=pos('function', resultcode);
-    arrayofsmall[3]:=pos('procedure', resultcode);
+    arrayofsmall[4]:=pos('procedure', resultcode);
     foundposition:=smallestof(arrayofsmall);
     //условия выхода из цикла
-    if ( pos('var', resultcode)=0 )
+    if ( pos('var', resultcode)=0 )                    
       and ( pos('begin', resultcode)=0 )
       and ( pos('end', resultcode)=0 )
       and ( pos('function', resultcode)=0 )
@@ -169,23 +169,23 @@ begin
     then break;
 
     //если var или function или procedure, то заносим переменные в массив
-    if foundposition=pos('var', resultcode)
-        or foundposition=pos('function', resultcode)
-        or foundposition=pos('procedure', resultcode) then
+    if (foundposition=pos('var', resultcode))
+        or (foundposition=pos('function', resultcode))
+        or (foundposition=pos('procedure', resultcode)) then
       begin
-      if foundposition<>pos('var', resultcode) then proc=true;
-        else proc=false;
+      if foundposition<>pos('var', resultcode) then proc:=true
+        else proc:=false;
       inc(nestcode);
       nest:=nest+char(nestcode);
       //убираем var/procedure/function из resultcode
       if proc=true
-        then resultcode:=copy(resultcode, foundposition+9, length(resultcode));
+        then resultcode:=copy(resultcode, foundposition+9, length(resultcode))
       else
         begin
         resultcode:=copy(resultcode, foundposition+3, length(resultcode));
-        if pos(')', resultcode)>pos('var', reesultcode)
-          resultcode:=copy(resultcode, 1, pos('var', reesultcode)-1)
-                    + copy(resultcode, pos('var', reesultcode)+3, length(resultcode));
+        if pos(')', resultcode)>pos('var', resultcode) then
+          resultcode:=copy(resultcode, 1, pos('var', resultcode)-1)
+                    + copy(resultcode, pos('var', resultcode)+3, length(resultcode));
         end;
       checkposition:=foundposition;
       while (checkposition<>pos('begin', resultcode))
@@ -193,7 +193,8 @@ begin
             and (checkposition<>pos('const', resultcode))
             and (checkposition<>pos('uses', resultcode))
             and (checkposition<>pos('implementation', resultcode))
-            and (checkposition<>pos('var', resultcode)) do
+            and (checkposition<>pos('var', resultcode))
+            and (checkposition<>pos(')', resultcode)) do
         begin
         //ищем запятую или : (или конец текущей штуки)
         setlength(arrayofsmall, 8);
@@ -215,29 +216,29 @@ begin
           deletecomma:=false;
           if foundposition=pos(':', resultcode) then deletecolon:=true;
           if foundposition=pos(',', resultcode) then deletecomma:=true;
-          i:=1;
-          while (resultcode[foundposition-i]<>' ')
-                and (resultcode[foundposition-i]<>#9)
-                and (resultcode[foundposition-i]<>#$A)
-                and (resultcode[foundposition-i]<>'(')
-                (resultcode[foundposition-i]<>';')
-            do inc(i);
-          foundposition:=foundposition-i+1; //начало переменной
-          while not (resultcode[foundposition+i] in ['A'..'Z', 'a'..'z', '0'..'9', '_'])
-            do dec(i);
-          variable:=copy(resultcode, foundposition, i+1);
+          iter:=1;
+          while (resultcode[foundposition-iter]<>' ')    
+                and (resultcode[foundposition-iter]<>#9)
+                and (resultcode[foundposition-iter]<>#$A)
+                and (resultcode[foundposition-iter]<>'(')
+                and (resultcode[foundposition-iter]<>';')
+            do inc(iter);
+          foundposition:=foundposition-iter+1; //начало переменной
+          while not (resultcode[foundposition+iter] in ['A'..'Z', 'a'..'z', '0'..'9', '_'])
+            do dec(iter);
+          vaariable:=copy(resultcode, foundposition, iter+1);
           //добавление переменной в массив
           //если она уже есть в массиве
           alreadycounted:=false;
-          if length(arrayofvariables)>0 then
+          if length(arrayofvaariables)>0 then
             begin
-            for j:=0 to length(arrayofvariables)-1 do
+            for j:=0 to length(arrayofvaariables)-1 do
               begin
-              if (arrayofvariables[j, 1]=variable)
-                and (arrayofvariables[j, 2]=nest)
+              if (arrayofvaariables[j, 1]=vaariable)
+                and (arrayofvaariables[j, 2]=nest)
               then
                 begin
-                arrayofvariables[j, 3]:=inttostr( strtoint(arrayofvariables[j, 3])+1 );
+                arrayofvaariables[j, 3]:=inttostr( strtoint(arrayofvaariables[j, 3])+1 );
                 alreadycounted:=true;
                 end;
               end;
@@ -245,12 +246,12 @@ begin
           //если ее не было в массиве
           if alreadycounted=false then
             begin
-            inc(vararraycount);
-            setlength(arrayofvariables, vararraycount);
-            arrayofvariables[vararraycount-1, 1]:=variable;
-            arrayofvariables[vararraycount-1, 2]:=nest;
-            arrayofvariables[vararraycount-1, 3]:=inttostr(0);
-            resultcode:=copy(resultcode, foundposition+i+1, length(resultcode));
+            inc(vaararraycount);
+            setlength(arrayofvaariables, vaararraycount);
+            arrayofvaariables[vaararraycount-1, 1]:=vaariable;
+            arrayofvaariables[vaararraycount-1, 2]:=nest;
+            arrayofvaariables[vaararraycount-1, 3]:=inttostr(0);
+            resultcode:=copy(resultcode, foundposition+iter+1, length(resultcode));
             end;
           if deletecolon=true
             then resultcode:=copy(resultcode, pos(':', resultcode)+1, length(resultcode));
@@ -265,23 +266,23 @@ begin
     if foundposition=pos('begin', resultcode) then
       begin
       resultcode:=copy(resultcode, foundposition+5, length(resultcode));
-      for j:=0 to length(arrayofvariables)-1 do
+      for j:=0 to length(arrayofvaariables)-1 do
         begin
         //проверка по всему массиву на повторяющиеся переменные
-        for i:=j+1 to length(arrayofvariables)-1 do
+        for i:=j+1 to length(arrayofvaariables)-1 do
           begin
-          if (arrayofvariables[j, 1]=arrayofvariables[i, 1])    
-            and (length(arrayofvariables[j, 2])<=length(arrayofvariables[i, 2]))
-          then continue;                               
+          if (arrayofvaariables[j, 1]=arrayofvaariables[i, 1])    
+            and (length(arrayofvaariables[j, 2])<=length(arrayofvaariables[i, 2]))
+          then continue;
           end;
-        while pos(arrayofvariables[j, 1], resultcode)<>0 do
+        while pos(arrayofvaariables[j, 1], resultcode)<>0 do
           begin
-          arrayofvariables[j, 3]:=inttostr( strtoint(arrayofvariables[j, 3])+1 );
-          resultcode:=copy(resultcode, 1, pos(arrayofvariables[j, 1], resultcode)-1 )
-                    + copy(resultcode, pos(arrayofvariables[j, 1], resultcode)
-                        +length(arrayofvariables[j, 1]), length(resultcode));
+          arrayofvaariables[j, 3]:=inttostr( strtoint(arrayofvaariables[j, 3])+1 );
+          resultcode:=copy(resultcode, 1, pos(arrayofvaariables[j, 1], resultcode)-1 )
+                    + copy(resultcode, pos(arrayofvaariables[j, 1], resultcode)
+                        +length(arrayofvaariables[j, 1]), length(resultcode));
           end;
-        end; //for arrayofvariables
+        end; //for arrayofvaariables
       end; //if begin
 
     if foundposition=pos('end', resultcode) then
@@ -294,9 +295,9 @@ begin
 
 //вывод результатов
   Listbox1.Clear;
-  for j:=0 to length(arrayofvariables)-1 do
+  for j:=0 to length(arrayofvaariables)-1 do
     begin
-    listbox1.items.Add(arrayofvariables[j, 1]+' - '+arrayofvariables[j, 2]+' - '+arrayofvariables[j, 3])
+    listbox1.items.Add(arrayofvaariables[j, 1]+' - '+arrayofvaariables[j, 2]+' - '+arrayofvaariables[j, 3])
     end;
 
 
